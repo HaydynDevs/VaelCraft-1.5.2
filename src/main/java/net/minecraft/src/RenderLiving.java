@@ -360,8 +360,8 @@ public abstract class RenderLiving extends Render {
 	 * Passes the specialRender and renders it
 	 */
 	protected void passSpecialRender(EntityLiving par1EntityLiving, double par2, double par4, double par6) {
-		if (Minecraft.isGuiEnabled() && par1EntityLiving != this.renderManager.livingPlayer && !par1EntityLiving.func_98034_c(Minecraft.getMinecraft().thePlayer)
-				&& (par1EntityLiving.func_94059_bO() || par1EntityLiving.func_94056_bM() && par1EntityLiving == this.renderManager.field_96451_i)) {
+	// Show nameplates for all living mobs (not the local player), regardless of custom name flags
+	if (Minecraft.isGuiEnabled() && par1EntityLiving != this.renderManager.livingPlayer && !par1EntityLiving.func_98034_c(Minecraft.getMinecraft().thePlayer)) {
 			float var8 = 1.6F;
 			float var9 = 0.016666668F * var8;
 			double var10 = par1EntityLiving.getDistanceSqToEntity(this.renderManager.livingPlayer);
@@ -480,20 +480,70 @@ public abstract class RenderLiving extends Render {
 			EaglerAdapter.glDisable(EaglerAdapter.GL_ALPHA_TEST);
 			var15.startDrawingQuads();
 			int var17 = var12.getStringWidth(par2Str) / 2;
+			// raise name a bit to make room for health and damage lines below
+			int nameYOffset = var16 - 10;
+			// background for name and health combined
+			int healthLineHeight = var12.FONT_HEIGHT + 4;
 			var15.setColorRGBA_F(0.0F, 0.0F, 0.0F, 0.25F);
-			var15.addVertex((double) (-var17 - 1), (double) (-1 + var16), 0.0D);
-			var15.addVertex((double) (-var17 - 1), (double) (8 + var16), 0.0D);
-			var15.addVertex((double) (var17 + 1), (double) (8 + var16), 0.0D);
-			var15.addVertex((double) (var17 + 1), (double) (-1 + var16), 0.0D);
+			var15.addVertex((double) (-var17 - 1), (double) (-1 + nameYOffset), 0.0D);
+			var15.addVertex((double) (-var17 - 1), (double) (8 + nameYOffset + healthLineHeight), 0.0D);
+			var15.addVertex((double) (var17 + 1), (double) (8 + nameYOffset + healthLineHeight), 0.0D);
+			var15.addVertex((double) (var17 + 1), (double) (-1 + nameYOffset), 0.0D);
 			var15.draw();
 			EaglerAdapter.glEnable(EaglerAdapter.GL_TEXTURE_2D);
 			EaglerAdapter.glEnable(EaglerAdapter.GL_ALPHA_TEST);
 			EaglerAdapter.glAlphaFunc(EaglerAdapter.GL_GREATER, 0.02f);
-			var12.drawString(par2Str, -var12.getStringWidth(par2Str) / 2, var16, 553648127);
+			// draw name
+			var12.drawString(par2Str, -var12.getStringWidth(par2Str) / 2, nameYOffset, 553648127);
 			EaglerAdapter.glAlphaFunc(EaglerAdapter.GL_GREATER, 0.1f);
 			EaglerAdapter.glEnable(EaglerAdapter.GL_DEPTH_TEST);
 			EaglerAdapter.glDepthMask(true);
-			var12.drawString(par2Str, -var12.getStringWidth(par2Str) / 2, var16, -1);
+			var12.drawString(par2Str, -var12.getStringWidth(par2Str) / 2, nameYOffset, -1);
+			// draw health line below name: format (current)/(max)
+			String healthStr = "(" + par1EntityLiving.getHealth() + ")/(" + par1EntityLiving.getMaxHealth() + ")";
+			int healthW = var12.getStringWidth(healthStr);
+			int healthX = -healthW / 2;
+			int healthY = nameYOffset + var12.FONT_HEIGHT + 2;
+			// draw small translucent background behind health
+			EaglerAdapter.glDisable(EaglerAdapter.GL_TEXTURE_2D);
+			EaglerAdapter.glDisable(EaglerAdapter.GL_ALPHA_TEST);
+			var15.startDrawingQuads();
+			var15.setColorRGBA_F(0.0F, 0.0F, 0.0F, 0.25F);
+			int pad = 3;
+			var15.addVertex((double) (healthX - pad), (double) (healthY - 2), 0.0D);
+			var15.addVertex((double) (healthX - pad), (double) (healthY + var12.FONT_HEIGHT + 2), 0.0D);
+			var15.addVertex((double) (healthX + healthW + pad), (double) (healthY + var12.FONT_HEIGHT + 2), 0.0D);
+			var15.addVertex((double) (healthX + healthW + pad), (double) (healthY - 2), 0.0D);
+			var15.draw();
+			EaglerAdapter.glEnable(EaglerAdapter.GL_TEXTURE_2D);
+			EaglerAdapter.glEnable(EaglerAdapter.GL_ALPHA_TEST);
+			var12.drawStringWithShadow(healthStr, healthX, healthY, 16777215);
+			// if damage display is active, render damage amount under the health
+			if (par1EntityLiving.damageDisplayTicks > 0 && par1EntityLiving.damageDisplayAmount > 0) {
+				String dmgStr = "-" + par1EntityLiving.damageDisplayAmount;
+				int dmgW = var12.getStringWidth(dmgStr);
+				int dmgX = -dmgW / 2;
+				int dmgY = healthY + var12.FONT_HEIGHT + 2;
+				// fade alpha based on remaining ticks
+				float alphaF = (float) par1EntityLiving.damageDisplayTicks / 80.0F;
+				if (alphaF < 0.0F) alphaF = 0.0F;
+				if (alphaF > 1.0F) alphaF = 1.0F;
+				int a = (int) (alphaF * 255.0F) & 255;
+				int color = (a << 24) | 0xFF5555; // red tint with alpha
+				// background for damage
+				EaglerAdapter.glDisable(EaglerAdapter.GL_TEXTURE_2D);
+				EaglerAdapter.glDisable(EaglerAdapter.GL_ALPHA_TEST);
+				var15.startDrawingQuads();
+				var15.setColorRGBA_F(0.0F, 0.0F, 0.0F, 0.25F * alphaF);
+				var15.addVertex((double) (dmgX - pad), (double) (dmgY - 2), 0.0D);
+				var15.addVertex((double) (dmgX - pad), (double) (dmgY + var12.FONT_HEIGHT + 2), 0.0D);
+				var15.addVertex((double) (dmgX + dmgW + pad), (double) (dmgY + var12.FONT_HEIGHT + 2), 0.0D);
+				var15.addVertex((double) (dmgX + dmgW + pad), (double) (dmgY - 2), 0.0D);
+				var15.draw();
+				EaglerAdapter.glEnable(EaglerAdapter.GL_TEXTURE_2D);
+				EaglerAdapter.glEnable(EaglerAdapter.GL_ALPHA_TEST);
+				var12.drawStringWithShadow(dmgStr, dmgX, dmgY, color);
+			}
 			EaglerAdapter.glEnable(EaglerAdapter.GL_LIGHTING);
 			EaglerAdapter.glDisable(EaglerAdapter.GL_BLEND);
 			EaglerAdapter.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);

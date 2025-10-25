@@ -204,6 +204,10 @@ public abstract class EntityLiving extends Entity {
 	/** Amount of damage taken in last hit, in half-hearts */
 	protected int lastDamage = 0;
 
+	/** Damage display: amount to show and remaining ticks to display it */
+	public int damageDisplayAmount = 0;
+	public int damageDisplayTicks = 0;
+
 	/** Holds the living entity age, used to control the despawn. */
 	protected int entityAge = 0;
 	protected float moveStrafing;
@@ -526,6 +530,10 @@ public abstract class EntityLiving extends Entity {
 
 		if (this.hurtResistantTime > 0) {
 			--this.hurtResistantTime;
+		}
+
+		if (this.damageDisplayTicks > 0) {
+			--this.damageDisplayTicks;
 		}
 
 		if (this.health <= 0) {
@@ -891,6 +899,9 @@ public abstract class EntityLiving extends Entity {
 			par2 = this.applyArmorCalculations(par1DamageSource, par2);
 			par2 = this.applyPotionDamageCalculations(par1DamageSource, par2);
 			int var3 = this.getHealth();
+			// set damage display info (client & integrated server will use this)
+			this.damageDisplayAmount = par2;
+			this.damageDisplayTicks = 80; // display for ~4 seconds (80 ticks)
 			this.health -= par2;
 			this.field_94063_bt.func_94547_a(par1DamageSource, var3, par2);
 		}

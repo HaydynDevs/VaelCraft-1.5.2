@@ -662,6 +662,33 @@ public class GuiIngame extends Gui {
 		}
 
 		EaglerAdapter.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+		// Show the name of a dropped item (EntityItem) under the crosshair when
+		// the player is looking directly at it. Require no GUI open and reasonable distance.
+		if (!this.mc.gameSettings.hideGUI && this.mc.currentScreen == null && this.mc.objectMouseOver != null
+				&& this.mc.objectMouseOver.typeOfHit == EnumMovingObjectType.ENTITY
+				&& this.mc.objectMouseOver.entityHit instanceof EntityItem) {
+			EntityItem ei = (EntityItem) this.mc.objectMouseOver.entityHit;
+			// distance check: only show for items within 8 blocks
+			double dist = ei.getDistanceToEntity(this.mc.renderViewEntity);
+			if (dist <= 8.0D) {
+				ItemStack stack = ei.getEntityItem();
+				if (stack != null) {
+					String name = stack.getDisplayName();
+					int w = var8.getStringWidth(name);
+					int sx = var6 / 2 - w / 2;
+					int sy = var7 / 2 + 8; // slightly below crosshair
+					// small translucent background for readability
+					int pad = 4;
+					drawRect(sx - pad, sy - 2, sx + w + pad, sy + var8.FONT_HEIGHT + 2, 0x80000000);
+					EaglerAdapter.glEnable(EaglerAdapter.GL_BLEND);
+					EaglerAdapter.glBlendFunc(EaglerAdapter.GL_SRC_ALPHA, EaglerAdapter.GL_ONE_MINUS_SRC_ALPHA);
+					var8.drawStringWithShadow(name, sx, sy, 16777215);
+					EaglerAdapter.glDisable(EaglerAdapter.GL_BLEND);
+				}
+			}
+		}
+
 		EaglerAdapter.glDisable(EaglerAdapter.GL_LIGHTING);
 		EaglerAdapter.glEnable(EaglerAdapter.GL_ALPHA_TEST);
 	}
