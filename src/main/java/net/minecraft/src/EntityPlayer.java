@@ -121,6 +121,20 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 	public void onStopBreakingBlock() {
 		this.isHarvesting = false;
 	}
+
+	/**
+	 * Called when a block is successfully broken
+	 */
+	public void onBlockBroken(int x, int y, int z, Block block) {
+		if (!this.worldObj.isRemote && 
+			this.getCurrentEquippedItem() != null &&
+			(this.getCurrentEquippedItem().getItem() instanceof ItemPickaxe ||
+			 this.getCurrentEquippedItem().getItem() instanceof ItemAxe ||
+			 this.getCurrentEquippedItem().getItem() instanceof ItemSpade)) {
+			// Add XP for breaking blocks with the right tool
+			addMiningXp(1);
+		}
+	}
 	
 
 
@@ -327,25 +341,16 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 			}
 		}
 		
-		// Process mining XP from block breaks
-		if (this.worldObj != null && !this.worldObj.isRemote) {
-			// Add XP only when actually mining blocks
-			if (this.isHarvesting) {
-				addMiningXp(1);
-			}
+		if (this.xpCooldown > 0) {
+			--this.xpCooldown;
 		}
 
 		if (this.xpCooldown > 0) {
 			--this.xpCooldown;
 		}
 
-		// Add mining XP when breaking blocks
 		if (this.worldObj != null && !this.worldObj.isRemote) {
-			if (this.getCurrentEquippedItem() != null && 
-				(this.getCurrentEquippedItem().getItem() instanceof ItemPickaxe ||
-				 this.getCurrentEquippedItem().getItem() instanceof ItemAxe ||
-				 this.getCurrentEquippedItem().getItem() instanceof ItemSpade)) {
-				// Check if we're breaking a block
+			if (this.isHarvesting) {
 				MovingObjectPosition mop = this.rayTrace(4.5D, 1.0F);
 				if (mop != null && mop.typeOfHit == EnumMovingObjectType.TILE) {
 					int blockId = this.worldObj.getBlockId(mop.blockX, mop.blockY, mop.blockZ);

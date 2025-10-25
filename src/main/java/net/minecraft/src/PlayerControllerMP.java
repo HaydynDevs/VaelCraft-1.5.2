@@ -112,6 +112,17 @@ public class PlayerControllerMP {
 
 				if (var8) {
 					var6.onBlockDestroyedByPlayer(var5, par1, par2, par3, var7);
+					
+					// When a block is broken, update mining XP if using appropriate tools
+					if (!this.currentGameType.isCreative()) {
+						ItemStack currentTool = this.mc.thePlayer.getCurrentEquippedItem();
+						if (currentTool != null && 
+							(currentTool.getItem() instanceof ItemPickaxe ||
+							 currentTool.getItem() instanceof ItemAxe ||
+							 currentTool.getItem() instanceof ItemSpade)) {
+							this.mc.thePlayer.addMiningXp(1);
+						}
+					}
 				}
 
 				this.currentBlockY = -1;
