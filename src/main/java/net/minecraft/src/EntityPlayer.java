@@ -94,11 +94,35 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 	/** Ticks accumulated while sprinting; when reaching 100 (5s) thirst decrements by 1 */
 	private int thirstSprintTimer = 0;
 
+
 	/** Temperature system: normalized temperature 0.0 (cold) .. 1.0 (hot) */
 	public float temperature = 0.5F;
 
 	/** Previous tick temperature for trend detection */
 	public float prevTemperature = 0.5F;
+
+	/** Mining level system */
+	public int miningLevel = 1;
+	public int miningXp = 0;
+	
+	/** Currently mining/breaking a block */
+	private boolean isHarvesting = false;
+	
+	/**
+	 * Called when the player starts breaking a block
+	 */
+	public void onStartBreakingBlock() {
+		this.isHarvesting = true;
+	}
+	
+	/**
+	 * Called when the player stops breaking a block
+	 */
+	public void onStopBreakingBlock() {
+		this.isHarvesting = false;
+	}
+	
+
 
 	/**
 	 * The total amount of experience the player has. This also includes the amount
@@ -171,6 +195,23 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 
 	public void addThirst(int d) {
 		this.setThirst(this.thirst + d);
+	}
+
+	/** Get XP needed for next mining level */
+	public int getNextLevelXp() {
+		return (int)(100 * Math.pow(1.5, miningLevel - 1));
+	}
+
+	/** Add mining XP when breaking blocks */
+	public void addMiningXp(int xp) {
+		miningXp += xp;
+		int nextLevelXp = getNextLevelXp();
+		while (miningXp >= nextLevelXp) {
+			miningXp -= nextLevelXp;
+			miningLevel++;
+			nextLevelXp = getNextLevelXp();
+			// Could add level-up effects here if desired
+		}
 	}
 
 	/** Temperature accessors */
@@ -285,9 +326,35 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 				this.clearItemInUse();
 			}
 		}
+		
+		// Process mining XP from block breaks
+		if (this.worldObj != null && !this.worldObj.isRemote) {
+			// Add XP only when actually mining blocks
+			if (this.isHarvesting) {
+				addMiningXp(1);
+			}
+		}
 
 		if (this.xpCooldown > 0) {
 			--this.xpCooldown;
+		}
+
+		// Add mining XP when breaking blocks
+		if (this.worldObj != null && !this.worldObj.isRemote) {
+			if (this.getCurrentEquippedItem() != null && 
+				(this.getCurrentEquippedItem().getItem() instanceof ItemPickaxe ||
+				 this.getCurrentEquippedItem().getItem() instanceof ItemAxe ||
+				 this.getCurrentEquippedItem().getItem() instanceof ItemSpade)) {
+				// Check if we're breaking a block
+				MovingObjectPosition mop = this.rayTrace(4.5D, 1.0F);
+				if (mop != null && mop.typeOfHit == EnumMovingObjectType.TILE) {
+					int blockId = this.worldObj.getBlockId(mop.blockX, mop.blockY, mop.blockZ);
+					if (blockId != 0 && Block.blocksList[blockId] != null && 
+						Block.blocksList[blockId].blockMaterial != Material.air) {
+						addMiningXp(1);
+					}
+				}
+			}
 		}
 
 		if (this.isPlayerSleeping()) {

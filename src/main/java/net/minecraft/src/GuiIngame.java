@@ -645,6 +645,14 @@ public class GuiIngame extends Gui {
 
 			String tempStr = "Temperature: " + tempPercent + "% (" + tempDesc + ")" + trend;
 			var8.drawStringWithShadow(tempStr, tx, tty, color);
+
+			// Mining level display (orange) under temperature
+			int mty = tty + var8.FONT_HEIGHT + 2;
+			int miningLevel = this.mc.thePlayer.miningLevel;
+			int miningXp = this.mc.thePlayer.miningXp;
+			int nextLevelXp = this.mc.thePlayer.getNextLevelXp();
+			String miningStr = "Mining Level: " + miningLevel + " | " + miningXp + "/" + nextLevelXp;
+			var8.drawStringWithShadow(miningStr, tx, mty, 0xFFA500); // Orange color
 		}
 
 		ScoreObjective var42 = this.mc.theWorld.getScoreboard().func_96539_a(1);

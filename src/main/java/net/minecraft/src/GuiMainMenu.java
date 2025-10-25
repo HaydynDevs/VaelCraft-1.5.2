@@ -86,7 +86,7 @@ public class GuiMainMenu extends GuiScreen {
 				this.splashText = "missingno";
 			}
 		}
-		this.field_92025_p = EaglerAdapter._wisWebGL() ? ("eaglercraft javascript runtime") : ("eaglercraft desktop runtime");
+		this.field_92025_p = EaglerAdapter._wisWebGL() ? ("VaelCraft Javascript Runtime") : ("VaelCraft Desktop Runtime");
 		this.start = System.currentTimeMillis();
 		this.start += this.start % 10000l;
 		this.ackLines = new ArrayList();
