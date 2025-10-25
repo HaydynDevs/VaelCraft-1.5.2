@@ -94,6 +94,12 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 	/** Ticks accumulated while sprinting; when reaching 100 (5s) thirst decrements by 1 */
 	private int thirstSprintTimer = 0;
 
+	/** Temperature system: normalized temperature 0.0 (cold) .. 1.0 (hot) */
+	public float temperature = 0.5F;
+
+	/** Previous tick temperature for trend detection */
+	public float prevTemperature = 0.5F;
+
 	/**
 	 * The total amount of experience the player has. This also includes the amount
 	 * of experience within their Experience Bar.
@@ -165,6 +171,50 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 
 	public void addThirst(int d) {
 		this.setThirst(this.thirst + d);
+	}
+
+	/** Temperature accessors */
+	public float getTemperatureFloat() {
+		return this.temperature;
+	}
+
+	public float getPrevTemperatureFloat() {
+		return this.prevTemperature;
+	}
+
+	/** Get temperature as a percentage (0-100) */
+	public int getTemperature() {
+		return Math.round(this.temperature * 100.0F);
+	}
+
+	public void setTemperature(float t) {
+		this.temperature = MathHelper.clamp_float(t, 0.0F, 1.0F);
+	}
+
+	public void addTemperature(float d) {
+		this.setTemperature(this.temperature + d);
+	}
+	
+	/** Apply visual effects based on temperature */
+	private void updateTemperatureEffects() {
+		// Visual effects for extreme temperatures
+		if (this.temperature < 0.2F) {
+			// Cold effect: occasional snowflake particles
+			if (this.rand.nextInt(20) == 0) {
+				double px = this.posX + (this.rand.nextDouble() - 0.5D) * (double)this.width;
+				double py = this.posY + this.rand.nextDouble() * (double)this.height - 0.25D;
+				double pz = this.posZ + (this.rand.nextDouble() - 0.5D) * (double)this.width;
+				this.worldObj.spawnParticle("snowballpoof", px, py, pz, 0.0D, 0.0D, 0.0D);
+			}
+		} else if (this.temperature > 0.8F) {
+			// Hot effect: occasional smoke/flame particles
+			if (this.rand.nextInt(20) == 0) {
+				double px = this.posX + (this.rand.nextDouble() - 0.5D) * (double)this.width;
+				double py = this.posY + this.rand.nextDouble() * (double)this.height - 0.25D;
+				double pz = this.posZ + (this.rand.nextDouble() - 0.5D) * (double)this.width;
+				this.worldObj.spawnParticle("flame", px, py, pz, 0.0D, 0.01D, 0.0D);
+			}
+		}
 	}
 
 	protected void entityInit() {
@@ -258,6 +308,29 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 		super.onUpdate();
 		
 		--this.itemInUseCount;
+
+		// Temperature: update and apply effects
+		this.prevTemperature = this.temperature;
+		if (this.worldObj != null) {
+			int bx = MathHelper.floor_double(this.posX);
+			int bz = MathHelper.floor_double(this.posZ);
+			BiomeGenBase biome = this.worldObj.getBiomeGenForCoords(bx, bz);
+			float targetTemp = MathHelper.clamp_float(biome.getFloatTemperature(), 0.0F, 1.0F);
+			
+			// Adjust for conditions
+			if (this.isBurning()) targetTemp = 1.0F;
+			if (this.isInWater()) targetTemp *= 0.8F; // Water cools you down
+			if (!this.worldObj.canBlockSeeTheSky(bx, MathHelper.floor_double(this.posY), bz)) {
+				targetTemp = (targetTemp + 0.5F) * 0.5F; // More moderate temps indoors
+			}
+			
+			// Smooth approach: adjust a small fraction toward target each tick
+			this.temperature += (targetTemp - this.temperature) * 0.02F;
+			this.temperature = MathHelper.clamp_float(this.temperature, 0.0F, 1.0F);
+			
+			// Apply visual effects based on temperature
+			this.updateTemperatureEffects();
+		}
 
 		if (this.isBurning() && this.capabilities.disableDamage) {
 			this.extinguish();

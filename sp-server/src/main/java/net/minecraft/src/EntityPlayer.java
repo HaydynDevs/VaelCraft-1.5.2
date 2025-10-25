@@ -81,6 +81,12 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 	 * The current amount of experience the player has within their Experience Bar.
 	 */
 	public float experience;
+    
+	/** Temperature system: normalized temperature 0.0 (cold) .. 1.0 (hot) */
+	public float temperature = 0.5F;
+    
+	/** Previous tick temperature for trend detection */
+	public float prevTemperature = 0.5F;
 
 	/**
 	 * This is the item that is in use when the player is holding down the
@@ -126,6 +132,35 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 		this.dataWatcher.addObject(16, Byte.valueOf((byte) 0));
 		this.dataWatcher.addObject(17, Byte.valueOf((byte) 0));
 		this.dataWatcher.addObject(18, Integer.valueOf(0));
+	}
+
+	/** Temperature accessors */
+	public float getTemperatureFloat() {
+		return this.temperature;
+	}
+
+	public float getPrevTemperatureFloat() {
+		return this.prevTemperature;
+	}
+
+	public int getTemperature() {
+		return Math.round(this.temperature * 100.0F);
+	}
+
+	public void setTemperature(float t) {
+		if (t < 0.0F) {
+			t = 0.0F;
+		}
+
+		if (t > 1.0F) {
+			t = 1.0F;
+		}
+
+		this.temperature = t;
+	}
+
+	public void addTemperature(float d) {
+		this.setTemperature(this.temperature + d);
 	}
 
 	/**
@@ -205,6 +240,18 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 		}
 
 		super.onUpdate();
+
+		// Temperature: slowly move toward biome temperature each tick
+		this.prevTemperature = this.temperature;
+		if (this.worldObj != null) {
+			int bx = MathHelper.floor_double(this.posX);
+			int bz = MathHelper.floor_double(this.posZ);
+			BiomeGenBase biome = this.worldObj.getBiomeGenForCoords(bx, bz);
+			float targetTemp = MathHelper.clamp_float(biome.getFloatTemperature(), 0.0F, 1.0F);
+			this.temperature += (targetTemp - this.temperature) * 0.02F;
+			if (this.temperature < 0.0F) this.temperature = 0.0F;
+			if (this.temperature > 1.0F) this.temperature = 1.0F;
+		}
 
 		if (!this.worldObj.isRemote && this.openContainer != null && !this.openContainer.canInteractWith(this)) {
 			this.closeScreen();

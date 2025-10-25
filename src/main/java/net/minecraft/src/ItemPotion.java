@@ -68,6 +68,11 @@ public class ItemPotion extends Item {
 			--par1ItemStack.stackSize;
 		}
 
+		// If this is an empty water bottle (metadata 0), restore 5 thirst levels
+		if (par1ItemStack.getItemDamage() == 0) {
+			par3EntityPlayer.addThirst(5);
+		}
+
 		if (!par3EntityPlayer.capabilities.isCreativeMode) {
 			if (par1ItemStack.stackSize <= 0) {
 				return new ItemStack(Item.glassBottle);

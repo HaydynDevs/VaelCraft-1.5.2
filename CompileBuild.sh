@@ -1,6 +1,8 @@
 export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 export PATH=$JAVA_HOME/bin:$PATH
-./gradlew clean teavmc
+
+chmod +x gradle
+gradle clean teavm
 
 chmod +x ./GetRepositorySignature.sh
 ./GetRepositorySignature.sh

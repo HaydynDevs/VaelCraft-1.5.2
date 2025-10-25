@@ -22,6 +22,26 @@ public class GuiIngame extends Gui {
 	private final GuiNewChat persistantChatGUI;
 	private int updateCounter = 0;
 
+	/** Helper method to interpolate between two colors */
+	private int interpolateColor(int color1, int color2, float factor) {
+		if (factor < 0) factor = 0;
+		if (factor > 1) factor = 1;
+		
+		int r1 = (color1 >> 16) & 0xFF;
+		int g1 = (color1 >> 8) & 0xFF;
+		int b1 = color1 & 0xFF;
+		
+		int r2 = (color2 >> 16) & 0xFF;
+		int g2 = (color2 >> 8) & 0xFF;
+		int b2 = color2 & 0xFF;
+		
+		int r = (int)(r1 + (r2 - r1) * factor);
+		int g = (int)(g1 + (g2 - g1) * factor);
+		int b = (int)(b1 + (b2 - b1) * factor);
+		
+		return (r << 16) | (g << 8) | b;
+	}
+
 	/** Biome overlay shown centered on the HUD (large, underlined) */
 	private String biomeOverlayMessage = null;
 	private int biomeOverlayTime = 0;
@@ -576,11 +596,55 @@ public class GuiIngame extends Gui {
 		// Thirst display (blue) - show current thirst level as numeric
 		if (this.mc.thePlayer != null) {
 			int thirst = this.mc.thePlayer.getThirst();
-			String thirstStr = "Thirst: " + thirst + "/" + net.minecraft.src.EntityPlayer.MAX_THIRST;
+			String thirstStr = "Thirst Level: " + thirst + "/" + net.minecraft.src.EntityPlayer.MAX_THIRST;
 			int tx = 10;
-			int ty = var7 - 60;
+			int ty = var7 - 80;
 			int blue = 0x3399FF;
 			var8.drawStringWithShadow(thirstStr, tx, ty, blue);
+
+			// Temperature display under thirst with description
+			float tempF = this.mc.thePlayer.getTemperatureFloat();
+			float tempPrev = this.mc.thePlayer.getPrevTemperatureFloat();
+			int tempPercent = this.mc.thePlayer.getTemperature();
+			int tty = ty + var8.FONT_HEIGHT + 2;
+
+			// Determine temperature state description and color
+			String tempDesc;
+			int color;
+			int orange = 0xFFA500;
+			int lightBlue = 0xADD8E6;
+			
+			if (tempF < 0.2F) {
+				tempDesc = "Freezing";
+				color = 0x0000FF;
+			} else if (tempF < 0.4F) {
+				tempDesc = "Cold";
+				float t = (tempF - 0.2F) / 0.2F;
+				color = interpolateColor(0x0000FF, 0xFFFFFF, t);
+			} else if (tempF < 0.6F) {
+				tempDesc = "Normal";
+				color = 0xFFFFFF;
+			} else if (tempF < 0.8F) {
+				tempDesc = "Hot";
+				float t = (tempF - 0.6F) / 0.2F;
+				color = interpolateColor(0xFFFFFF, 0xFF0000, t);
+			} else {
+				tempDesc = "Burning";
+				color = 0xFF0000;
+			}
+
+			// Show trend arrows if temperature is changing
+			String trend = "";
+			if (tempF > tempPrev + 0.0001F) {
+				trend = " \u2191"; // Up arrow
+				color = orange;
+			} else if (tempF < tempPrev - 0.0001F) {
+				trend = " \u2193"; // Down arrow
+				color = lightBlue;
+			}
+
+			String tempStr = "Temperature: " + tempPercent + "% (" + tempDesc + ")" + trend;
+			var8.drawStringWithShadow(tempStr, tx, tty, color);
 		}
 
 		ScoreObjective var42 = this.mc.theWorld.getScoreboard().func_96539_a(1);
