@@ -210,12 +210,13 @@ public class EntityPlayerSP extends EntityPlayer {
 					}
 					BiomeGenBase old = BiomeGenBase.biomeList[idx];
 					if (old != null) {
+						// Optionally show a leaving message. We do NOT return here so the
+						// welcome overlay for the new biome will still be displayed.
 						//this.mc.ingameGUI.setBiomeOverlay("Leaving " + old.biomeName + ".", 40);
-						return;
 					}
 				}
 				if (current != null) {
-					this.mc.ingameGUI.setBiomeOverlay("Welcome to " + current.biomeName + ".", 80);
+					this.mc.ingameGUI.setBiomeOverlay("Entering " + current.biomeName, 160);
 				}
 				this.lastBiomeId = currentId;
 			}
