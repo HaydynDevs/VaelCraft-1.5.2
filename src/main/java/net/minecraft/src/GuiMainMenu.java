@@ -211,11 +211,75 @@ public class GuiMainMenu extends GuiScreen {
 		if(!showAck) {
 			super.mouseClicked(par1, par2, par3);
 			if (par3 == 0) {
-				int w = this.fontRenderer.getStringWidth("eaglercraft readme.txt") * 3 / 4;
-				if(par1 >= (this.width - w - 4) && par1 <= this.width && par2 >= 0 && par2 <= 9) {
-					showAck = true;
-					return;
-				}
+				   int w = this.fontRenderer.getStringWidth("eaglercraft readme.txt") * 3 / 4;
+				   if(par1 >= (this.width - w - 4) && par1 <= this.width && par2 >= 0 && par2 <= 9) {
+					   showAck = true;
+					   // Show Eaglercraft credits (default)
+					   String file = EaglerAdapter.fileContents("/credits.txt");
+					   this.ackLines.clear();
+					   if(file == null) {
+						   for(int i = 0; i < 30; ++i) {
+							   this.ackLines.add(" -- file not found -- ");
+						   }
+					   }else {
+						   String[] lines = file.split("\n");
+						   for(String s : lines) {
+							   String s2 = s.trim();
+							   if(s2.isEmpty()) {
+								   this.ackLines.add("");
+							   }else {
+								   String[] words = s2.split(" ");
+								   String currentLine = "   ";
+								   for(String s3 : words) {
+									   String cCurrentLine = currentLine + s3 + " ";
+									   if(this.mc.fontRenderer.getStringWidth(cCurrentLine) < 315) {
+										   currentLine = cCurrentLine;
+									   }else {
+										   this.ackLines.add(currentLine);
+										   currentLine = s3 + " ";
+									   }
+								   }
+								   this.ackLines.add(currentLine);
+							   }
+						   }
+					   }
+					   return;
+				   }
+				   // VaelCraft Credits click (top left)
+				   int vw = this.fontRenderer.getStringWidth("VaelCraft Credits") * 3 / 4;
+				   if(par1 >= 0 && par1 <= (vw + 4) && par2 >= 0 && par2 <= 9) {
+					   showAck = true;
+					   // Show VaelCraft credits
+					   String file = EaglerAdapter.fileContents("/vaelcraft.txt");
+					   this.ackLines.clear();
+					   if(file == null) {
+						   for(int i = 0; i < 30; ++i) {
+							   this.ackLines.add(" -- file not found -- ");
+						   }
+					   }else {
+						   String[] lines = file.split("\n");
+						   for(String s : lines) {
+							   String s2 = s.trim();
+							   if(s2.isEmpty()) {
+								   this.ackLines.add("");
+							   }else {
+								   String[] words = s2.split(" ");
+								   String currentLine = "   ";
+								   for(String s3 : words) {
+									   String cCurrentLine = currentLine + s3 + " ";
+									   if(this.mc.fontRenderer.getStringWidth(cCurrentLine) < 315) {
+										   currentLine = cCurrentLine;
+									   }else {
+										   this.ackLines.add(currentLine);
+										   currentLine = s3 + " ";
+									   }
+								   }
+								   this.ackLines.add(currentLine);
+							   }
+						   }
+					   }
+					   return;
+				   }
 				w = this.fontRenderer.getStringWidth("debug console") * 3 / 4;
 				if(par1 >= 0 && par1 <= (w + 4) && par2 >= 0 && par2 <= 9) {
 					/*
@@ -503,7 +567,7 @@ public class GuiMainMenu extends GuiScreen {
 		this.drawTexturedModalRect(var6 + 0, var7 + 0, 0, 0, 155, 44);
 		this.drawTexturedModalRect(var6 + 155, var7 + 0, 0, 45, 155, 44);
 
-		this.drawString(this.fontRenderer, "minecraft 1.5.2", 2, this.height - 20, 16777215);
+		this.drawString(this.fontRenderer, "VaelCraft 1.5.2", 2, this.height - 20, 16777215);
 		this.drawString(this.fontRenderer, ConfigConstants.mainMenuString + EnumChatFormatting.GRAY + " (cracked)", 2, this.height - 10, 16777215);
 
 		//String var10 = "Copyright " + Calendar.getInstance().get(Calendar.YEAR) + " Mojang AB.";
@@ -548,7 +612,7 @@ public class GuiMainMenu extends GuiScreen {
 		EaglerAdapter.glDisable(EaglerAdapter.GL_BLEND);
 		EaglerAdapter.glPopMatrix();
 		*/
-		var10 = "eaglercraft readme.txt";
+		var10 = "Eaglercraft Credits";
 		int w = this.fontRenderer.getStringWidth(var10) * 3 / 4;
 		if(!showAck && par1 >= (this.width - w - 4) && par1 <= this.width && par2 >= 0 && par2 <= 9) {
 			drawRect((this.width - w - 4), 0, this.width, 9, 0x55000099);
@@ -560,6 +624,21 @@ public class GuiMainMenu extends GuiScreen {
 		EaglerAdapter.glScalef(0.75f, 0.75f, 0.75f);
 		this.drawString(this.fontRenderer, var10, 0, 0, 16777215);
 		EaglerAdapter.glPopMatrix();
+
+
+		   // VaelCraft Credits (top left)
+		   String vaelCredits = "VaelCraft Credits";
+		   int vw = this.fontRenderer.getStringWidth(vaelCredits) * 3 / 4;
+		   if(!showAck && par1 >= 0 && par1 <= (vw + 4) && par2 >= 0 && par2 <= 9) {
+			   drawRect(0, 0, vw + 4, 9, 0x55000099);
+		   }else {
+			   drawRect(0, 0, vw + 4, 9, 0x55200000);
+		   }
+		   EaglerAdapter.glPushMatrix();
+		   EaglerAdapter.glTranslatef(2.0f, 1.0f, 0.0f);
+		   EaglerAdapter.glScalef(0.75f, 0.75f, 0.75f);
+		   this.drawString(this.fontRenderer, vaelCredits, 0, 0, 0x00FFAA);
+		   EaglerAdapter.glPopMatrix();
 		
 		/*
 		var10 = "debug console";

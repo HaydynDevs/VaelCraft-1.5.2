@@ -1,0 +1,20 @@
+VaelCraft is a modified eaglercraft 1.5.2. This modded client was NOT created by lax1dude. 
+It was built OFF of eaglercraft 1.5.2 which lax1dude owns. 
+
+§bVaelCraft Developers
+(Add your name if you contribute to this project)
+- TheRealHaydynn (HaydynDevs) / crashcourse14 - Owners of the client
+
+§bWhat's &b&lin &b&lVaelCraft
+
+- Minging level
+- Thirst
+- Temperature
+
+§cAll copyright and credits are in credits.txt.
+
+&bHow &bto &bcontribute
+Send HaydynDevs a pull request. Once accepted, fork it. Once you're in, and done adding what you want to add, compile your code by running §4./CompileBuild.sh
+You will need to run &6chmod §4+x CompileBuild.sh
+Make sure to COMMIT your code or else it won't show!
+Github: §1https://github.com/HaydynDevs/VaelCraft-1.5.2
