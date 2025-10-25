@@ -1,4 +1,5 @@
 
+
 buildscript {
     repositories {
         mavenCentral()
@@ -78,6 +79,8 @@ teavm {
    
    /** Add name of configurations here where to look for jarfiles. */
    includeJarsFrom = [];
+    classesToPreserve = ['**'] // preserve all classes
+
    
    /** By default teavmc taskd epends on javaCompile task, unless this varaibale is true. */
    skipJavaCompile = false;       

@@ -101,13 +101,13 @@ public class GuiConnecting extends GuiScreen {
 	private void showDisconnectScreen(String e) {
 		RateLimit l = EaglerAdapter.getRateLimitStatus();
 		if(l == RateLimit.NOW_LOCKED) {
-			this.mc.displayGuiScreen(new GuiDisconnected(this.field_98098_c, "disconnect.ipNowLocked", "disconnect.endOfStream", null));
+			this.mc.displayGuiScreen(new GuiDisconnected(this.field_98098_c, "disconnect.ipNowLocked", "disconnect.endOfStream", (Object) null));
 		}else if(l == RateLimit.LOCKED) {
-			this.mc.displayGuiScreen(new GuiDisconnected(this.field_98098_c, "disconnect.ipLocked", "disconnect.endOfStream", null));
+			this.mc.displayGuiScreen(new GuiDisconnected(this.field_98098_c, "disconnect.ipLocked", "disconnect.endOfStream", (Object) null));
 		}else if(l == RateLimit.BLOCKED) {
-			this.mc.displayGuiScreen(new GuiDisconnected(this.field_98098_c, "disconnect.ipBlocked", "disconnect.endOfStream", null));
+			this.mc.displayGuiScreen(new GuiDisconnected(this.field_98098_c, "disconnect.ipBlocked", "disconnect.endOfStream", (Object) null));
 		}else if(l == RateLimit.FAILED_POSSIBLY_LOCKED) {
-			this.mc.displayGuiScreen(new GuiDisconnected(this.field_98098_c, "disconnect.ipFailedPossiblyLocked", "disconnect.endOfStream", null));
+			this.mc.displayGuiScreen(new GuiDisconnected(this.field_98098_c, "disconnect.ipFailedPossiblyLocked", "disconnect.endOfStream", (Object) null));
 		}else {
 			this.mc.displayGuiScreen(new GuiDisconnected(this.field_98098_c, "connect.failed", "disconnect.genericReason", "could not connect to "+uri, e));
 		}
