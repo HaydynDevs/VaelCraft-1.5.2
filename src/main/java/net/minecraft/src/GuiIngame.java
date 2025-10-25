@@ -573,6 +573,16 @@ public class GuiIngame extends Gui {
 			this.mc.mcProfiler.endSection();
 		}
 
+		// Thirst display (blue) - show current thirst level as numeric
+		if (this.mc.thePlayer != null) {
+			int thirst = this.mc.thePlayer.getThirst();
+			String thirstStr = "Thirst: " + thirst + "/" + net.minecraft.src.EntityPlayer.MAX_THIRST;
+			int tx = 10;
+			int ty = var7 - 60;
+			int blue = 0x3399FF;
+			var8.drawStringWithShadow(thirstStr, tx, ty, blue);
+		}
+
 		ScoreObjective var42 = this.mc.theWorld.getScoreboard().func_96539_a(1);
 
 		if (var42 != null) {

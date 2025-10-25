@@ -87,6 +87,12 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 
 	/** The current experience level the player is on. */
 	public int experienceLevel;
+    
+	/** Thirst system: current thirst level (0..MAX_THIRST) */
+	public int thirst = 20;
+	public static final int MAX_THIRST = 20;
+	/** Ticks accumulated while sprinting; when reaching 100 (5s) thirst decrements by 1 */
+	private int thirstSprintTimer = 0;
 
 	/**
 	 * The total amount of experience the player has. This also includes the amount
@@ -138,6 +144,27 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 
 	public int getMaxHealth() {
 		return 20;
+	}
+
+	/** Thirst accessors */
+	public int getThirst() {
+		return this.thirst;
+	}
+
+	public void setThirst(int t) {
+		if (t < 0) {
+			t = 0;
+		}
+
+		if (t > MAX_THIRST) {
+			t = MAX_THIRST;
+		}
+
+		this.thirst = t;
+	}
+
+	public void addThirst(int d) {
+		this.setThirst(this.thirst + d);
 	}
 
 	protected void entityInit() {
@@ -485,6 +512,19 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 				}
 			}
 		}
+
+		// Thirst: while sprinting, dehydrate by 1 every 100 ticks (5 seconds)
+		if (this.isSprinting()) {
+			++this.thirstSprintTimer;
+			if (this.thirstSprintTimer >= 100) {
+				if (this.thirst > 0) {
+					--this.thirst;
+				}
+				this.thirstSprintTimer = 0;
+			}
+		} else {
+			this.thirstSprintTimer = 0;
+		}
 	}
 
 	private void collideWithPlayer(Entity par1Entity) {
@@ -694,6 +734,10 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 		this.foodStats.readNBT(par1NBTTagCompound);
 		this.capabilities.readCapabilitiesFromNBT(par1NBTTagCompound);
 
+		if (par1NBTTagCompound.hasKey("Thirst")) {
+			this.thirst = par1NBTTagCompound.getInteger("Thirst");
+		}
+
 		if (par1NBTTagCompound.hasKey("EnderItems")) {
 			NBTTagList var3 = par1NBTTagCompound.getTagList("EnderItems");
 			this.theInventoryEnderChest.loadInventoryFromNBT(var3);
@@ -724,6 +768,8 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 		this.foodStats.writeNBT(par1NBTTagCompound);
 		this.capabilities.writeCapabilitiesToNBT(par1NBTTagCompound);
 		par1NBTTagCompound.setTag("EnderItems", this.theInventoryEnderChest.saveInventoryToNBT());
+
+		par1NBTTagCompound.setInteger("Thirst", this.thirst);
 	}
 
 	/**
@@ -1687,6 +1733,7 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 			this.experienceLevel = par1EntityPlayer.experienceLevel;
 			this.experienceTotal = par1EntityPlayer.experienceTotal;
 			this.experience = par1EntityPlayer.experience;
+			this.thirst = par1EntityPlayer.thirst;
 			this.setScore(par1EntityPlayer.getScore());
 			this.teleportDirection = par1EntityPlayer.teleportDirection;
 		} else if (this.worldObj.getGameRules().getGameRuleBooleanValue("keepInventory")) {
@@ -1694,6 +1741,7 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 			this.experienceLevel = par1EntityPlayer.experienceLevel;
 			this.experienceTotal = par1EntityPlayer.experienceTotal;
 			this.experience = par1EntityPlayer.experience;
+			this.thirst = par1EntityPlayer.thirst;
 			this.setScore(par1EntityPlayer.getScore());
 		}
 
