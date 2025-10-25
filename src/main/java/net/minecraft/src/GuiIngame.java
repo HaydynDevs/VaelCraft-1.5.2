@@ -17,10 +17,15 @@ public class GuiIngame extends Gui {
 	private static RenderItem itemRenderer = null;
 	private final EaglercraftRandom rand = new EaglercraftRandom();
 	private final Minecraft mc;
-
+	int strengthLevel = 0;
 	/** ChatGUI instance that retains all previous chat data */
 	private final GuiNewChat persistantChatGUI;
 	private int updateCounter = 0;
+
+	/** Biome overlay shown centered on the HUD (large, underlined) */
+	private String biomeOverlayMessage = null;
+	private int biomeOverlayTime = 0;
+	private int biomeOverlayDuration = 0;
 
 	/** The string specifying which record music is playing */
 	private String recordPlaying = "";
@@ -537,6 +542,37 @@ public class GuiIngame extends Gui {
 			this.mc.mcProfiler.endSection();
 		}
 
+		// Biome overlay rendering (centered, large, underlined)
+		if (this.biomeOverlayMessage != null && this.biomeOverlayTime > 0) {
+			this.mc.mcProfiler.startSection("biomeOverlay");
+			float alphaF = (float) this.biomeOverlayTime / (float) this.biomeOverlayDuration;
+			int alpha = (int) (alphaF * 255.0F);
+			if (alpha > 255) {
+				alpha = 255;
+			}
+			if (alpha < 0) {
+				alpha = 0;
+			}
+			EaglerAdapter.glPushMatrix();
+			// position at center of the screen, slightly above center
+			EaglerAdapter.glTranslatef((float) (var6 / 2), (float) (var7 / 2 - 40), 0.0F);
+			EaglerAdapter.glScalef(1.5F, 1.5F, 1.0F);
+			EaglerAdapter.glEnable(EaglerAdapter.GL_BLEND);
+			EaglerAdapter.glBlendFunc(EaglerAdapter.GL_SRC_ALPHA, EaglerAdapter.GL_ONE_MINUS_SRC_ALPHA);
+			int color = 16777215 + (alpha << 24);
+			int w = var8.getStringWidth(this.biomeOverlayMessage);
+			var8.drawStringWithShadow(this.biomeOverlayMessage, -w / 2, 0, color);
+			// underline
+			drawRect(-w / 2, var8.FONT_HEIGHT + 2, w / 2, var8.FONT_HEIGHT + 4, color);
+			EaglerAdapter.glDisable(EaglerAdapter.GL_BLEND);
+			EaglerAdapter.glPopMatrix();
+			--this.biomeOverlayTime;
+			if (this.biomeOverlayTime <= 0) {
+				this.biomeOverlayMessage = null;
+			}
+			this.mc.mcProfiler.endSection();
+		}
+
 		ScoreObjective var42 = this.mc.theWorld.getScoreboard().func_96539_a(1);
 
 		if (var42 != null) {
@@ -854,6 +890,17 @@ public class GuiIngame extends Gui {
 
 			this.highlightingItemStack = var1;
 		}
+	}
+
+	/**
+	 * Set a centered, large, underlined biome overlay message on the HUD.
+	 * @param msg message text
+	 * @param ticks duration in ticks to display
+	 */
+	public void setBiomeOverlay(String msg, int ticks) {
+		this.biomeOverlayMessage = msg;
+		this.biomeOverlayDuration = ticks > 0 ? ticks : 60;
+		this.biomeOverlayTime = this.biomeOverlayDuration;
 	}
 
 	public void setRecordPlayingMessage(String par1Str) {

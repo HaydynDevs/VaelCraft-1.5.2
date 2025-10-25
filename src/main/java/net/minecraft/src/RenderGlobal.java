@@ -420,6 +420,8 @@ public class RenderGlobal implements IWorldAccess {
 				", U: " + Minecraft.debugChunkGeometryUpdates + "/" + Minecraft.debugChunkUpdates;
 	}
 
+
+
 	/**
 	 * Gets the entities info for use on the Debug screen
 	 */

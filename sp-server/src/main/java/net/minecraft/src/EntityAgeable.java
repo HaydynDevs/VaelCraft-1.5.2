@@ -7,7 +7,6 @@ public abstract class EntityAgeable extends EntityCreature {
 	public EntityAgeable(World par1World) {
 		super(par1World);
 	}
-
 	public abstract EntityAgeable createChild(EntityAgeable var1);
 
 	/**
@@ -49,7 +48,7 @@ public abstract class EntityAgeable extends EntityCreature {
 
 	protected void entityInit() {
 		super.entityInit();
-		this.dataWatcher.addObject(12, new Integer(0));
+		this.dataWatcher.addObject(12, Integer.valueOf(0));
 	}
 
 	/**

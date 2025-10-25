@@ -30,6 +30,9 @@ public class EntityPlayerSP extends EntityPlayer {
 	/** The amount of time an entity has been in a Portal the previous tick */
 	public float prevTimeInPortal;
 
+	/** Last biome id the player was in; used to detect biome changes for welcome messages */
+	private int lastBiomeId = Integer.MIN_VALUE;
+
 	public EntityPlayerSP(Minecraft par1Minecraft, World par2World, String par3Session, int par4) {
 		super();
 		this.setWorld(par2World);
@@ -191,6 +194,30 @@ public class EntityPlayerSP extends EntityPlayer {
 			if (this.onGround && this.capabilities.isFlying) {
 				this.capabilities.isFlying = false;
 				this.sendPlayerAbilities();
+			}
+
+			// Biome change detection: welcome/leave messages when the local player
+			// crosses biome boundaries. Runs client-side only for the local player.
+			int bx = MathHelper.floor_double(this.posX);
+			int bz = MathHelper.floor_double(this.posZ);
+			BiomeGenBase current = this.worldObj.getBiomeGenForCoords(bx, bz);
+			int currentId = current != null ? current.biomeID : Integer.MIN_VALUE;
+			if (currentId != this.lastBiomeId) {
+				if (this.lastBiomeId != Integer.MIN_VALUE) {
+					int idx = this.lastBiomeId;
+					if (idx < 0 || idx >= BiomeGenBase.biomeList.length) {
+						idx = Math.max(0, Math.min(BiomeGenBase.biomeList.length - 1, idx));
+					}
+					BiomeGenBase old = BiomeGenBase.biomeList[idx];
+					if (old != null) {
+						//this.mc.ingameGUI.setBiomeOverlay("Leaving " + old.biomeName + ".", 40);
+						return;
+					}
+				}
+				if (current != null) {
+					this.mc.ingameGUI.setBiomeOverlay("Welcome to " + current.biomeName + ".", 80);
+				}
+				this.lastBiomeId = currentId;
 			}
 		}
 	}

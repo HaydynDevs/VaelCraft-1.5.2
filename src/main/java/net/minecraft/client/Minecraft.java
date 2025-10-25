@@ -1629,7 +1629,7 @@ public class Minecraft implements Runnable {
 			StringTranslate var4 = StringTranslate.getInstance();
 			
 			if(!this.gameSettings.fancyGraphics || this.gameSettings.ambientOcclusion == 0) {
-				displayEaglercraftText("Note: " + var4.translateKey("fancyGraphicsNote"));
+				displayEaglercraftText(EnumChatFormatting.LIGHT_PURPLE + "Welcome to VaelCraft! VaelCraft is an RPG modded eaglercraft client. It adds lots items, blocks, and armor.");
 			}
 			
 			if(this.gameSettings.showCoordinates) {
