@@ -14,6 +14,13 @@ public class CommandSubterrax extends CommandBase {
         return "/subterrax - summon the Subterrax boss at your location";
     }
 
+    // Allow all senders (players/console) to use this command regardless of server ops.
+    // ServerConfigurationManager checks player-specific permissions for most commands,
+    // so we explicitly allow this command to avoid requiring OP status for testing.
+    public boolean canCommandSenderUseCommand(ICommandSender sender) {
+        return true;
+    }
+
     public void processCommand(ICommandSender sender, String[] args) {
         // If sender is not a player, require a player argument or fail
         EntityPlayerMP player;
