@@ -194,6 +194,46 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 	public void addTemperature(float d) {
 		this.setTemperature(this.temperature + d);
 	}
+
+	// Mining leveling system
+	/** Current mining XP accumulated toward next level */
+	public int miningXP = 0;
+	/** Current mining level (starts at 1) */
+	public int miningLevel = 1;
+	/** Base XP required for level 1 */
+	public static final int MINING_BASE_XP = 10;
+
+	public int getMiningXP() {
+		return this.miningXP;
+	}
+
+	public int getMiningLevel() {
+		return this.miningLevel;
+	}
+
+	/** XP required to reach the next level from current level */
+	public int getMiningXPForNextLevel() {
+		// level 1 -> MINING_BASE_XP, each next level multiplies by 1.5
+		double val = MINING_BASE_XP * Math.pow(1.5d, this.miningLevel - 1);
+		return Math.max(1, (int) Math.round(val));
+	}
+
+	/** Add mining XP (can level up multiple times) */
+	public void addMiningXP(int amount) {
+		if (amount <= 0) return;
+		this.miningXP += amount;
+		while (this.miningXP >= this.getMiningXPForNextLevel()) {
+			this.miningXP -= this.getMiningXPForNextLevel();
+			this.miningLevel++;
+			// optional: play level-up sound/effect client-side
+			// this.worldObj.playSoundAtEntity(this, "random.levelup", 1.0F, 1.0F);
+		}
+		// update DataWatcher so GUI can pick up changes (in singleplayer/integrated)
+		if (this.dataWatcher != null) {
+			this.dataWatcher.updateObject(19, Integer.valueOf(this.miningXP));
+			this.dataWatcher.updateObject(20, Integer.valueOf(this.miningLevel));
+		}
+	}
 	
 	/** Apply visual effects based on temperature */
 	private void updateTemperatureEffects() {
@@ -222,6 +262,9 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 		this.dataWatcher.addObject(16, Byte.valueOf((byte) 0));
 		this.dataWatcher.addObject(17, Byte.valueOf((byte) 0));
 		this.dataWatcher.addObject(18, Integer.valueOf(0));
+		// mining XP and level (synced from server)
+		this.dataWatcher.addObject(19, Integer.valueOf(0)); // miningXP
+		this.dataWatcher.addObject(20, Integer.valueOf(1)); // miningLevel
 	}
 
 	/**
@@ -385,6 +428,23 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 
 		if (this.ridingEntity == null) {
 			this.startMinecartRidingCoordinate = null;
+		}
+
+		// Sync mining XP/level from DataWatcher when present (server -> client updates)
+		if (this.dataWatcher != null && this.worldObj != null && this.worldObj.isRemote) {
+			int dwXP = this.dataWatcher.getWatchableObjectInt(19);
+			int dwLevel = this.dataWatcher.getWatchableObjectInt(20);
+			if (dwXP != this.miningXP || dwLevel != this.miningLevel) {
+				this.miningXP = dwXP;
+				this.miningLevel = dwLevel;
+
+				// Debug: log client-side receipt of mining metadata changes
+				try {
+					System.out.println("[Mining] Client received DW update -> miningXP=" + this.miningXP + ", miningLevel=" + this.miningLevel + ", entityId=" + this.entityId);
+				} catch (Throwable t) {
+					// ignore logging failures
+				}
+			}
 		}
 	}
 

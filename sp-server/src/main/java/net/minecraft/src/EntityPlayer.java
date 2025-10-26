@@ -132,6 +132,9 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 		this.dataWatcher.addObject(16, Byte.valueOf((byte) 0));
 		this.dataWatcher.addObject(17, Byte.valueOf((byte) 0));
 		this.dataWatcher.addObject(18, Integer.valueOf(0));
+		// mining XP and level (synced to client via DataWatcher)
+		this.dataWatcher.addObject(19, Integer.valueOf(0)); // miningXP
+		this.dataWatcher.addObject(20, Integer.valueOf(1)); // miningLevel
 	}
 
 	/** Temperature accessors */
@@ -161,6 +164,65 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 
 	public void addTemperature(float d) {
 		this.setTemperature(this.temperature + d);
+	}
+
+	// Mining leveling system
+	/** Current mining XP accumulated toward next level */
+	public int miningXP = 0;
+	/** Current mining level (starts at 1) */
+	public int miningLevel = 1;
+	/** Base XP required for level 1 */
+	public static final int MINING_BASE_XP = 10;
+
+	public int getMiningXP() {
+		return this.miningXP;
+	}
+
+	public int getMiningLevel() {
+		return this.miningLevel;
+	}
+
+	/** XP required to reach the next level from current level */
+	public int getMiningXPForNextLevel() {
+		// level 1 -> MINING_BASE_XP, each next level multiplies by 1.5
+		double val = MINING_BASE_XP * Math.pow(1.5d, this.miningLevel - 1);
+		return Math.max(1, (int) Math.round(val));
+	}
+
+	/** Add mining XP (can level up multiple times) */
+	public void addMiningXP(int amount) {
+		if (amount <= 0) return;
+		this.miningXP += amount;
+		while (this.miningXP >= this.getMiningXPForNextLevel()) {
+			this.miningXP -= this.getMiningXPForNextLevel();
+			this.miningLevel++;
+			// could add server-side notifications or achievements here
+		}
+		// update DataWatcher so client receives the change
+		if (this.dataWatcher != null) {
+			this.dataWatcher.updateObject(19, Integer.valueOf(this.miningXP));
+			this.dataWatcher.updateObject(20, Integer.valueOf(this.miningLevel));
+
+			// Immediately send metadata packet to the player so the client HUD updates
+			// (ensures integrated/singleplayer and immediate updates)
+			try {
+				if (this instanceof EntityPlayerMP) {
+					EntityPlayerMP mp = (EntityPlayerMP) this;
+					if (mp.playerNetServerHandler != null) {
+						mp.playerNetServerHandler.sendPacket(new Packet40EntityMetadata(this.entityId, this.dataWatcher, false));
+					}
+				}
+			} catch (Throwable t) {
+				// best-effort send; ignore failures to avoid crashing server
+			}
+
+			// Debug: log server-side mining XP awards and metadata send attempts
+			try {
+				System.out.println("[Mining] Server awarded XP -> entityId=" + this.entityId + ", miningXP=" + this.miningXP + ", miningLevel=" + this.miningLevel + ", hasNetHandler=" + (this instanceof EntityPlayerMP && ((EntityPlayerMP)this).playerNetServerHandler != null));
+			} catch (Throwable t) {
+				// ignore logging failures
+			}
+		}
 	}
 
 	/**
@@ -719,6 +781,21 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 			NBTTagList var3 = par1NBTTagCompound.getTagList("EnderItems");
 			this.theInventoryEnderChest.loadInventoryFromNBT(var3);
 		}
+
+		// Load mining XP/level if present
+		if (par1NBTTagCompound.hasKey("MiningXP")) {
+			this.miningXP = par1NBTTagCompound.getInteger("MiningXP");
+		}
+
+		if (par1NBTTagCompound.hasKey("MiningLevel")) {
+			this.miningLevel = par1NBTTagCompound.getInteger("MiningLevel");
+		}
+
+		// Ensure DataWatcher reflects loaded values so client HUD shows correct state
+		if (this.dataWatcher != null) {
+			this.dataWatcher.updateObject(19, Integer.valueOf(this.miningXP));
+			this.dataWatcher.updateObject(20, Integer.valueOf(this.miningLevel));
+		}
 	}
 
 	/**
@@ -745,6 +822,10 @@ public abstract class EntityPlayer extends EntityLiving implements ICommandSende
 		this.foodStats.writeNBT(par1NBTTagCompound);
 		this.capabilities.writeCapabilitiesToNBT(par1NBTTagCompound);
 		par1NBTTagCompound.setTag("EnderItems", this.theInventoryEnderChest.saveInventoryToNBT());
+
+		// Save mining XP/level so progress is persisted
+		par1NBTTagCompound.setInteger("MiningXP", this.miningXP);
+		par1NBTTagCompound.setInteger("MiningLevel", this.miningLevel);
 	}
 
 	/**

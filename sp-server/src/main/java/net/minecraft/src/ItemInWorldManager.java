@@ -242,6 +242,15 @@ public class ItemInWorldManager {
 				}
 			}
 
+			// Award mining XP for successful block harvests (non-creative)
+			if (var6 && !this.isCreative()) {
+				try {
+					this.thisPlayerMP.addMiningXP(1);
+				} catch (Throwable t) {
+					// ignore if method not present (safety)
+				}
+			}
+
 			return var6;
 		}
 	}

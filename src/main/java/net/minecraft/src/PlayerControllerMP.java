@@ -343,6 +343,37 @@ public class PlayerControllerMP {
 		this.syncCurrentPlayItem();
 		this.netClientHandler.addToSendQueue(new Packet7UseEntity(par1EntityPlayer.entityId, par2Entity.entityId, 1));
 		par1EntityPlayer.attackTargetEntityWithCurrentItem(par2Entity);
+		// Singleplayer UX: apply the expected damage locally so mob health/nameplate updates immediately
+		try {
+			if (par2Entity instanceof EntityLiving) {
+				EntityLiving target = (EntityLiving) par2Entity;
+				int dmg = par1EntityPlayer.inventory.getDamageVsEntity(target);
+
+				if (par1EntityPlayer.isPotionActive(Potion.damageBoost)) {
+					dmg += 3 << par1EntityPlayer.getActivePotionEffect(Potion.damageBoost).getAmplifier();
+				}
+
+				if (par1EntityPlayer.isPotionActive(Potion.weakness)) {
+					dmg -= 2 << par1EntityPlayer.getActivePotionEffect(Potion.weakness).getAmplifier();
+				}
+
+				// Enchantment modifier (adds extra damage)
+				try {
+					dmg += EnchantmentHelper.getEnchantmentModifierLiving(par1EntityPlayer, target);
+				} catch (Throwable t) {
+					// ignore if EnchantmentHelper isn't available for some reason
+				}
+
+				// Apply at least the computed damage locally so the nameplate shows the change instantly
+				try {
+					target.setEntityHealth(target.getHealth() - dmg);
+				} catch (Throwable t) {
+					// defensive: don't crash client
+				}
+			}
+		} catch (Throwable t) {
+			// swallow; purely client-side visual improvement
+		}
 	}
 
 	public boolean func_78768_b(EntityPlayer par1EntityPlayer, Entity par2Entity) {
