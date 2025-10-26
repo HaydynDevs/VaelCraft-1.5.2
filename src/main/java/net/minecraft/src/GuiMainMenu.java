@@ -57,7 +57,7 @@ public class GuiMainMenu extends GuiScreen {
 	private String field_104024_v;
 
 	/** An array of all the paths to the panorama pictures. */
-	private static final TextureLocation[] titlePanoramaPaths = new TextureLocation[] { new TextureLocation("/title/bg/panorama0.png"), new TextureLocation("/title/bg/panorama1.png"), new TextureLocation("/title/bg/panorama2.png"), new TextureLocation("/title/bg/panorama3.png"), new TextureLocation("/title/bg/panorama4.png"), new TextureLocation("/title/bg/panorama5.png") };
+	private static final TextureLocation[] titlePanoramaPaths = new TextureLocation[] { new TextureLocation("/title/bg/panorama_0.png"), new TextureLocation("/title/bg/panorama_1.png"), new TextureLocation("/title/bg/panorama_2.png"), new TextureLocation("/title/bg/panorama_3.png"), new TextureLocation("/title/bg/panorama_4.png"), new TextureLocation("/title/bg/panorama_5.png") };
 	public static final String field_96138_a = "";
 	private int field_92024_r;
 	private int field_92023_s;
@@ -86,7 +86,7 @@ public class GuiMainMenu extends GuiScreen {
 				this.splashText = "missingno";
 			}
 		}
-		this.field_92025_p = EaglerAdapter._wisWebGL() ? ("eaglercraft javascript runtime") : ("eaglercraft desktop runtime");
+		this.field_92025_p = EaglerAdapter._wisWebGL() ? ("VaelCraft JavasScript Runtime") : ("VaelCraft Desktop Runtime");
 		this.start = System.currentTimeMillis();
 		this.start += this.start % 10000l;
 		this.ackLines = new ArrayList();
@@ -503,7 +503,7 @@ public class GuiMainMenu extends GuiScreen {
 		this.drawTexturedModalRect(var6 + 0, var7 + 0, 0, 0, 155, 44);
 		this.drawTexturedModalRect(var6 + 155, var7 + 0, 0, 45, 155, 44);
 
-		this.drawString(this.fontRenderer, "minecraft 1.5.2", 2, this.height - 20, 16777215);
+		this.drawString(this.fontRenderer, "Vaelcraft update 1, 1.5.2", 2, this.height - 20, 16777215);
 		this.drawString(this.fontRenderer, ConfigConstants.mainMenuString + EnumChatFormatting.GRAY + " (cracked)", 2, this.height - 10, 16777215);
 
 		//String var10 = "Copyright " + Calendar.getInstance().get(Calendar.YEAR) + " Mojang AB.";

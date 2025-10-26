@@ -125,7 +125,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection {
 			return;
 		}
 		if(!un.equals(un.replaceAll("[^A-Za-z0-9\\-_]", "_").trim())) {
-			this.disconnect("Go fuck yourself");
+			this.disconnect("Go fuck yourself - lax1dude");
 			return;
 		}
 		if (BungeeCord.getInstance().tokenVerify.isEmpty()) {

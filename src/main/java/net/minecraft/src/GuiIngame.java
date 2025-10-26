@@ -437,7 +437,7 @@ public class GuiIngame extends Gui {
 		if (this.mc.gameSettings.showDebugInfo) {
 			this.mc.mcProfiler.startSection("debug");
 			EaglerAdapter.glPushMatrix();
-			var8.drawStringWithShadow("minecraft 1.5.2 (" + this.mc.debug + ")", 2, 2, 16777215);
+			var8.drawStringWithShadow("Vaelcraft update 1, 1.5.2 (" + this.mc.debug + ")", 2, 2, 16777215);
 			var8.drawStringWithShadow(this.mc.debugInfoRenders(), 2, 12, 16777215);
 			var8.drawStringWithShadow(this.mc.getEntityDebug(), 2, 22, 16777215);
 			var8.drawStringWithShadow(this.mc.debugInfoEntities(), 2, 32, 16777215);

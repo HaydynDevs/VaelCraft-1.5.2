@@ -64,6 +64,23 @@ public class ServerConfigurationManager {
 			viewDistance = par2EntityPlayerMP.renderDistance;
 		}
 		NBTTagCompound var3 = this.readPlayerDataFromFile(par2EntityPlayerMP);
+
+		// If var3 is null the player has no existing player data (first join).
+		// Give them a welcome book so they get it only once when they first spawn.
+		if (var3 == null) {
+			try {
+				ItemStack welcome = new ItemStack(Item.writtenBook);
+				NBTTagList pages = new NBTTagList("pages");
+				pages.appendTag(new NBTTagString("1", "Welcome to VaelCraft!\n\nEnjoy your stay and have fun exploring."));
+				welcome.setTagInfo("pages", pages);
+				welcome.setTagInfo("author", new NBTTagString("author", "Server"));
+				welcome.setTagInfo("title", new NBTTagString("title", "Welcome Book"));
+				par2EntityPlayerMP.inventory.addItemStackToInventory(welcome);
+			} catch (Throwable t) {
+				// Fail silently - giving a welcome book is non-critical
+				t.printStackTrace();
+			}
+		}
 		par2EntityPlayerMP.setWorld(this.mcServer.worldServerForDimension(par2EntityPlayerMP.dimension));
 		par2EntityPlayerMP.theItemInWorldManager.setWorld((WorldServer) par2EntityPlayerMP.worldObj);
 		String var4 = "local";
