@@ -3,6 +3,7 @@ package net.minecraft.src;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ArrayList;
 
 import net.lax1dude.eaglercraft.EaglerAdapter;
 import net.lax1dude.eaglercraft.EaglercraftRandom;
@@ -673,6 +674,27 @@ public class GuiIngame extends Gui {
 		this.persistantChatGUI.drawChat(this.updateCounter);
 		this.mc.mcProfiler.endSection();
 		EaglerAdapter.glPopMatrix();
+		// Draw pickup messages at bottom-right (newest at bottom). Each line disappears after 80 ticks.
+		if (!this.pickupMessages.isEmpty()) {
+			EaglerAdapter.glPushMatrix();
+			EaglerAdapter.glEnable(EaglerAdapter.GL_BLEND);
+			EaglerAdapter.glBlendFunc(EaglerAdapter.GL_SRC_ALPHA, EaglerAdapter.GL_ONE_MINUS_SRC_ALPHA);
+			float prevZ = this.zLevel;
+			this.zLevel = 200.0F;
+			int baseRight = var6 - 10;
+			int line = 0;
+			for (int i = this.pickupMessages.size() - 1; i >= 0; --i) {
+				PickupMessage pm = this.pickupMessages.get(i);
+				int y = var7 - 10 - (line + 1) * (var8.FONT_HEIGHT + 2);
+				int x = baseRight - var8.getStringWidth(pm.text);
+				// draw opaque white text (fade removed to ensure visibility)
+				var8.drawStringWithShadow(pm.text, x, y, 16777215);
+				++line;
+			}
+			this.zLevel = prevZ;
+			EaglerAdapter.glDisable(EaglerAdapter.GL_BLEND);
+			EaglerAdapter.glPopMatrix();
+		}
 		var42 = this.mc.theWorld.getScoreboard().func_96539_a(0);
 
 		if (this.mc.gameSettings.keyBindPlayerList.pressed && (!this.mc.isIntegratedServerRunning() || this.mc.thePlayer.sendQueue.playerInfoList.size() > 1 || var42 != null)) {
@@ -828,6 +850,25 @@ public class GuiIngame extends Gui {
 				}
 			}
 		}
+	}
+
+	// Pickup message support: shows "(amount)x (item)" lines at bottom-right for 80 ticks
+	private static class PickupMessage {
+		public final String text;
+		public int age;
+		public PickupMessage(String t) { this.text = t; this.age = 0; }
+	}
+
+	private final List<PickupMessage> pickupMessages = new ArrayList<PickupMessage>();
+
+	/** Add a pickup message to be shown on-screen for 80 ticks */
+	public void addPickupMessage(String msg) {
+		if (msg == null || msg.length() == 0) return;
+		this.pickupMessages.add(new PickupMessage(msg));
+		// Debug: log when messages are added (helps verify the hook)
+		try {
+			System.out.println("[Pickup/debug] Added message: " + msg);
+		} catch (Throwable t) {}
 	}
 
 	/**
@@ -1001,6 +1042,17 @@ public class GuiIngame extends Gui {
 			}
 
 			this.highlightingItemStack = var1;
+
+			// Update pickup messages ages and remove expired (80 ticks)
+			if(!this.pickupMessages.isEmpty()) {
+				for (Iterator<PickupMessage> it = this.pickupMessages.iterator(); it.hasNext();) {
+					PickupMessage pm = it.next();
+					pm.age++;
+					if (pm.age >= 80) {
+						it.remove();
+					}
+				}
+			}
 		}
 	}
 

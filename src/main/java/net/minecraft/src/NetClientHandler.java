@@ -562,6 +562,21 @@ public class NetClientHandler extends NetHandler {
 			}
 
 			this.mc.effectRenderer.addEffect(new EntityPickupFX(this.mc.theWorld, var2, (Entity) var3, -0.5F));
+
+			// If the local player collected an item entity, show pickup message in GUI
+			try {
+				if (var2 instanceof EntityItem && var3 == this.mc.thePlayer) {
+					EntityItem ei = (EntityItem) var2;
+					ItemStack stack = ei.getEntityItem();
+					if (stack != null) {
+						String name = stack.getDisplayName();
+						String msg = "(" + stack.stackSize + ")x " + name;
+						if (this.mc.ingameGUI != null) this.mc.ingameGUI.addPickupMessage(msg);
+					}
+				}
+			} catch (Throwable t) {
+				// best-effort
+			}
 			this.worldClient.removeEntityFromWorld(par1Packet22Collect.collectedEntityId);
 		}
 	}

@@ -377,6 +377,21 @@ public class EntityPlayerSP extends EntityPlayer {
 	 */
 	public void onItemPickup(Entity par1Entity, int par2) {
 		this.mc.effectRenderer.addEffect(new EntityPickupFX(this.mc.theWorld, par1Entity, this, -0.5F));
+
+		// Show pickup message in bottom-right: "(amount)x (item)" for 80 ticks
+		try {
+			if (par1Entity instanceof EntityItem) {
+				EntityItem ei = (EntityItem) par1Entity;
+				ItemStack stack = ei.getEntityItem();
+				String name = stack != null ? stack.getDisplayName() : ei.getEntityName();
+				String msg = "(" + par2 + ")x " + name;
+				if (this.mc.ingameGUI != null) {
+					this.mc.ingameGUI.addPickupMessage(msg);
+				}
+			}
+		} catch (Throwable t) {
+			// best-effort only
+		}
 	}
 
 	/**
