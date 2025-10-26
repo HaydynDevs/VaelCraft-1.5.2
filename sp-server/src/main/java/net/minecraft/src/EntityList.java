@@ -193,6 +193,7 @@ public class EntityList {
 		addMapping(EntitySpider.class, (w) -> new EntitySpider(w), "Spider", 52, 3419431, 11013646);
 		addMapping(EntityGiantZombie.class, (w) -> new EntityGiantZombie(w), "Giant", 53);
 		addMapping(EntityZombie.class, (w) -> new EntityZombie(w), "Zombie", 54, 44975, 7969893);
+		addMapping(EntitySubterrax.class, (w) -> new EntitySubterrax(w), "Subterrax", 201);
 		addMapping(EntitySlime.class, (w) -> new EntitySlime(w), "Slime", 55, 5349438, 8306542);
 		addMapping(EntityGhast.class, (w) -> new EntityGhast(w), "Ghast", 56, 16382457, 12369084);
 		addMapping(EntityPigZombie.class, (w) -> new EntityPigZombie(w), "PigZombie", 57, 15373203, 5009705);
